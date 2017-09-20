@@ -104,6 +104,7 @@ passport.use(new KakaoStrategy({
 }, (accessToken, refreshToken, profile, done) => {
   const avatar_url = profile._json.properties.profile_image ? profile._json.properties.profile_image : null;
   const user_name = profile.displayName ? profile.displayName : null;
+
   query.firstOrCreateUserByProvider(
     'kakao',
     profile.id,
@@ -120,9 +121,10 @@ passport.use(new KakaoStrategy({
 passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_CLIENT_ID,
   clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-  callbackURL: process.env.FACEBOOK_CALLBACK_URL
+  callbackURL: process.env.FACEBOOK_CALLBACK_URL,
+  profileFields: ['id', 'displayName', 'photos']
 }, (accessToken, refreshToken, profile, done) => {
-  const avatar_url = profile.profileURl ? profile.profileURl : null;
+  const avatar_url = profile.photos[0].value ? profile.photos[0].value : null;
   const user_name = profile.displayName ? profile.displayName : null;
   query.firstOrCreateUserByProvider(
     'facebook',
@@ -138,14 +140,12 @@ passport.use(new FacebookStrategy({
 }))
 
 passport.use(new LocalStrategy((username, password, done) => {
-  console.log(username, '<< [ userid ]');
   query.getLocalUserById(username)
     .then(matched => {
-      console.log(matched, '<< [ matched ]');
       if(matched && bcrypt.compareSync(password, matched.access_token)){
         done(null, matched);
       }else{
-        done(new Error('사용자 이름 혹은 비밀번호가 일치하지 않습니다.'));
+        done(null, false, { message: '아이디 비번이 틀렸습니다ㅏ.' });
       }
     })
 }))
@@ -155,6 +155,7 @@ app.get('/', mw.loginRequired, (req, res) => {
 })
 
 app.get('/login', (req, res) => {
+  console.log(req.flash('error'), '<< [ req.flash() ]');
   res.render('login.pug', {errors: req.flash('error'), csrfToken: req.csrfToken()})
 })
 
