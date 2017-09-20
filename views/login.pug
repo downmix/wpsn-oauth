@@ -3,3 +3,18 @@ extends layout/main.pug
 block body
   h1 로그인
   p: a(href='/auth/github') Github으로 로그인
+  p: a(href='/auth/google') Google으로 로그인
+  p: a(href='/auth/kakao') Kakao으로 로그인
+  p: a(href='/auth/facebook') Facebook으로 로그인
+  p Local 로그인
+    form(action='/auth/local', method='post')
+      label
+        span 아이디
+        input(type='text', name='username')
+      label
+        span 비밀번호
+        input(type='password', name='password')
+      input(type='hidden', name="_csrf", value=csrfToken)
+      button(type='submit') 로그인
+  br
+  p: a(href='/register') 회원가입
